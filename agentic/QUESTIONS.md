@@ -73,7 +73,7 @@ Ask this question immediately after language is confirmed:
 > - Building a website for your own business → CLIENT
 > - Using it as a starter for development → DEVELOPER
 
-Answer: [TBD]
+Answer: Developer (`CLIENT_TYPE.md` = DEVELOPER)
 
 ⸻
 
@@ -86,7 +86,7 @@ Q0. What is the project owner's email address?
 > This email will automatically receive `owner` permissions — able to manage roadmap, forum, and all system settings.
 > Must match the email used to log in to the system.
 
-Answer: [TBD]
+Answer: wansing05@gmail.com
 
 ⸻
 
@@ -95,19 +95,19 @@ Answer: [TBD]
 
 Q1. What is the project name?
 
-Answer: [TBD]
+Answer: neare
 
 ---
 
 Q2. What does this project do? (1–3 sentences — the core problem it solves)
 
-Answer: [TBD]
+Answer: Shows people that activity is happening near them — starting with running/movement (nearby runners, busy spots, community heatmap) — without ever exposing who a specific person is. Also answers "where's good to run" via a LINE chat bot.
 
 ---
 
 Q3. Who are the target users?
 
-Answer: [TBD]
+Answer: People who run/are active outdoors and want to know what's happening nearby (runners, informal running communities) — privacy-conscious by design, no public profile/identity exposure required to use the core feature.
 
 ---
 
@@ -115,9 +115,9 @@ Q4. What is the current status of the project?
 
 - [ ] Greenfield — starting from scratch
 - [ ] Existing codebase — building on top of existing code
-- [ ] Prototype — already have a proof-of-concept
+- [x] Prototype — already have a proof-of-concept
 
-Answer: [TBD]
+Answer: Prototype — an existing working prototype ("Snackig": Expo mobile app + Nitro native module + Go/Fiber/Postgres/better-auth backend) is being imported into this repo as the foundation.
 
 ⸻
 
@@ -128,13 +128,13 @@ Q5. What is the primary language?
 
 > ⚠️ This template uses **TypeScript** as the primary language — recommended for compatibility with the existing codebase.
 
-- [ ] TypeScript *(used in this template — recommended)*
+- [x] TypeScript *(used in this template — recommended)* — plus Go for apps/backend-go (existing prototype backend, kept as-is)
 - [ ] JavaScript
 - [ ] Python
 - [ ] Go
 - [ ] Other: [specify]
 
-Answer: [TBD]
+Answer: TypeScript for apps/web, apps/api, apps/admin, apps/mobile, packages/*. Go for apps/backend-go (imported as-is from the existing prototype — not a new choice, see DECISIONS.md).
 
 ---
 
@@ -147,7 +147,7 @@ Q6. Describe your project idea and what you want to achieve.
 
 > Conductor: use the answers to infer the frontend framework, page structure, and feature scope. Do not ask for the framework directly — decide it from context.
 
-Answer: [TBD]
+Answer: Main thing users can do: open the mobile app (apps/mobile, Expo) and see nearby running activity/density near them (map view, live nearby runners, community heatmap — no individual identities shown), or ask a LINE bot "วิ่งไหนดี" (where's good to run) and get an answer backed by real aggregated data. Plan/goal: import the existing Snackig prototype as the real starting point rather than rebuilding; keep the existing web dashboard (apps/web/apps/api/apps/admin) as owner-facing tooling, unaffected. Screens (mobile): map/nearby view, run tracking, settings/consent (location sharing opt-in). Expected result: a fast, native-feeling app that answers "is anything happening near me right now" without compromising anyone's privacy.
 
 ---
 
@@ -156,10 +156,10 @@ Q7. Package manager?
 
 - [ ] npm
 - [ ] yarn
-- [ ] pnpm
+- [x] pnpm
 - [ ] bun
 
-Answer: [TBD]
+Answer: pnpm — unified across the whole monorepo, including the newly-imported apps/mobile (which originally used bun in the standalone Snackig prototype).
 
 ---
 
@@ -212,7 +212,7 @@ After Q7, Conductor must:
 
    Conductor waits for confirmation before proceeding to Section 3.
 
-Answer (Cloudflare account): [TBD]
+Answer (Cloudflare account): Yes — already in use (apps/web/apps/api/apps/admin are already deployed on Cloudflare Workers per completed stages 3–11 in PIPELINE.md). apps/backend-go (Go) will need a separate, non-Cloudflare deployment target — tracked as an open item in PIPELINE.md, not blocking this setup pass.
 
 ⸻
 
@@ -275,11 +275,11 @@ After the client has answered all questions, Conductor must:
 
 Status
 
-- [ ] Project Identity (Q0–Q4): not answered
-- [ ] Tech Stack (Q5–Q7): not answered
-- [ ] Cloudflare account: not confirmed
-- [ ] Conductor updated all governance files: not done
-- [ ] Setup Test PASSED: not done
+- [x] Project Identity (Q0–Q4): answered
+- [x] Tech Stack (Q5–Q7): answered
+- [x] Cloudflare account: confirmed (already in use)
+- [x] Conductor updated all governance files: done (PROJECT.md, DECISIONS.md, ARCHITECTURE.md, CONTRACTS.md, ROADMAP.md, SECURITY_RULES.md, PIPELINE.md)
+- [ ] Setup Test PASSED: run T1–T8 below before treating setup as fully closed
 
 ⸻
 

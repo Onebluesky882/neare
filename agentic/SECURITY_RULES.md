@@ -189,6 +189,21 @@ Failure → Status: FAIL, Ready For Next Stage: NO.
 
 ⸻
 
+Location & Presence Data
+
+`neare`'s core feature shows that people/activity exist near a user without exposing who any specific person is. Location data can still be "personal data" under GDPR/PDPA even without a name attached, if it can be linked back to an individual. See DECISIONS.md → "Location & presence data must be aggregated, never individually identifying" for full context.
+
+Workers may NOT:
+* return a per-user list of nearby people from any endpoint or UI — aggregated counts/density (e.g. geohash-bucketed) only, unless the viewer has an explicit accepted mutual-consent relationship with that specific person
+* display an exact count for a bucket below the agreed minimum size — show a floor value or hide the cell instead
+* persist raw GPS pings indefinitely — only derived/aggregate data may be retained, within a defined retention window
+* enable location sharing without explicit, revocable opt-in consent, or silently upgrade its scope (e.g. "while using app" → "always")
+* build a "quick individual lookup" debug shortcut against location data, even temporarily
+
+Violation → Status: FAIL, Ready For Next Stage: NO — same as any other Security Validation Checklist failure.
+
+⸻
+
 Final Authority
 
 Security compliance is mandatory and may not be waived for convenience, deadlines, implementation complexity, or testing shortcuts.

@@ -10,7 +10,7 @@ Conductor Branch: main
 
 | Stage | Domain | Depends On | Status |
 |-------|--------|------------|--------|
-| stage-1-setup | <!-- domain --> | none | PLANNING |
+| stage-1-setup | agentic/* (governance setup) | none | COMPLETE |
 | stage-2-claude-md-scope-rule | CLAUDE.md | none | COMPLETE |
 | stage-3-agent-cost-and-monitor-dashboard | apps/api/src/domains/agent, apps/admin | none | COMPLETE |
 | stage-4-discord-and-nowpayments-services | apps/api/src/domains/discord, apps/api/src/domains/nowpayments | none | COMPLETE |
@@ -22,6 +22,17 @@ Conductor Branch: main
 | stage-9-fix-dashboard-purchase-bug | apps/web/app/dashboard/page.tsx | none | COMPLETE |
 | stage-10-setup-page-redesign | apps/web/app/setup/page.tsx, apps/web/components/setup/*, apps/web/app/globals.css | none | COMPLETE |
 | stage-11-chat-ops-core-package | packages/chat-ops-core, README.md | none | COMPLETE |
+| stage-12-snackig-mobile-import | apps/mobile | none | IN_PROGRESS |
+| stage-13-nitro-module-import | packages/nitro-module-math | none | IN_PROGRESS |
+| stage-14-go-backend-import | apps/backend-go | none | IN_PROGRESS |
+| stage-15-pnpm-workspace-wiring | pnpm-workspace.yaml, root package.json, apps/mobile/package.json, packages/nitro-module-math/package.json | stage-12, stage-13 | PLANNING |
+| stage-16-line-bot-nearby-spots | apps/api/src/domains/line, apps/backend-go (aggregation endpoint) | stage-14 | PLANNING |
+
+---
+
+## Parallel Dispatch Proof — stage-12 / stage-13 / stage-14
+
+**Purpose:** These three stages import disjoint parts of the existing "Snackig" prototype into disjoint paths (`apps/mobile`, `packages/nitro-module-math`, `apps/backend-go`) — none of them share a file, a workspace-config edit, or a DB row, so per the Parallel Dispatch Rule (DECISIONS.md — Agent Orchestration Patterns) they are dispatched simultaneously. `stage-15` (workspace wiring) is intentionally sequential and depends on 12+13, since it touches shared files (`pnpm-workspace.yaml`, root `package.json`).
 
 ---
 
@@ -40,13 +51,21 @@ Conductor Branch: main
 
 ### stage-1-setup
 
-**Domain:** <!-- e.g. root, apps/*, packages/* -->
+**Domain:** agentic/* (governance setup)
 **Depends On:** none
-**Status:** `PLANNING`
+**Status:** `COMPLETE`
 
 **Acceptance Criteria:**
-- [ ] <!-- criterion 1 -->
-- [ ] <!-- criterion 2 -->
+- [x] `CLIENT_TYPE.md` set (DEVELOPER)
+- [x] Q0–Q7 in QUESTIONS.md answered
+- [x] PROJECT.md, DECISIONS.md, ARCHITECTURE.md, CONTRACTS.md, ROADMAP.md, SECURITY_RULES.md updated to reflect answers
+- [x] `license_status: active` set in PROJECT.md
+
+**Done:** Ran the QUESTIONS.md onboarding flow with Dev (language: Thai for chat, English for governance files per GOVERNANCE_CORE.md). Defined the project: `neare`, a privacy-first nearby-activity app (starting with running), built on top of Dev's existing "Snackig" prototype. Recorded the decision to import that prototype (mobile app, Nitro native module, Go backend) rather than rebuild, and the decision that all location/presence data must be aggregated and never individually identifying. Updated every governance file the QUESTIONS.md Conductor Instructions section calls for.
+
+**Next:** stage-12/13/14 (Snackig import, parallel-eligible), then stage-15 (workspace wiring), then stage-16 (LINE bot).
+
+**Blockers:** None.
 
 **Dispatch-In:** `tasks/stage-1-setup.md`
 **Gate-Out:** `gate-out/stage-1-setup.md`
@@ -265,6 +284,91 @@ Cleanup performed: both worktrees and their branches were removed (`git worktree
 **Next:** No HTTP domain wired yet (LINE/Meta webhooks) — only Telegram has a live route (`apps/api/src/domains/telegram`) and Discord (`apps/api/src/domains/discord`) predate this package and don't use it. If the client wants a LINE or Meta bot live, build `apps/api/src/domains/line` (or `meta`) as `schema.ts`/`handler.ts`/`route.ts` importing from `@gover-agent/chat-ops-core`, mounted in `apps/api/src/index.ts` — same pattern as every other domain. `CLAUDE.md`'s "Already provided" table was not updated in this pass (client asked only for the README) — worth adding a row there too once/if a real route exists.
 
 **Blockers:** None.
+
+### stage-12-snackig-mobile-import
+
+**Domain:** apps/mobile
+**Depends On:** none
+**Status:** `IN_PROGRESS`
+
+**Acceptance Criteria:**
+- [ ] `snackig/` copied to `apps/mobile`, excluding `node_modules`, `.expo`, and `bun.lock`
+- [ ] `package.json` name/workspace-relative deps updated for the pnpm monorepo (`nitro-module-math` dependency path updated to `packages/nitro-module-math`)
+- [ ] No secrets or build caches copied
+
+**Dispatch-In:** `tasks/stage-12-snackig-mobile-import.md`
+**Gate-Out:** `gate-out/stage-12-snackig-mobile-import.md`
+**Merge-Approval:** `merge-approval/stage-12-snackig-mobile-import.md`
+
+---
+
+### stage-13-nitro-module-import
+
+**Domain:** packages/nitro-module-math
+**Depends On:** none
+**Status:** `IN_PROGRESS`
+
+**Acceptance Criteria:**
+- [ ] `nitro-module-math/` copied to `packages/nitro-module-math`, excluding `node_modules`
+- [ ] Recognized as a pnpm workspace package
+
+**Dispatch-In:** `tasks/stage-13-nitro-module-import.md`
+**Gate-Out:** `gate-out/stage-13-nitro-module-import.md`
+**Merge-Approval:** `merge-approval/stage-13-nitro-module-import.md`
+
+---
+
+### stage-14-go-backend-import
+
+**Domain:** apps/backend-go
+**Depends On:** none
+**Status:** `IN_PROGRESS`
+
+**Acceptance Criteria:**
+- [ ] `backend/go_project` + `backend/better-auth` copied to `apps/backend-go`, excluding `.env`, the compiled `main` binary, `tmp/`, and `node_modules`
+- [ ] `.env.example` created documenting required variables, with no real secret values
+- [ ] No secrets committed (SECURITY_RULES.md)
+
+**Dispatch-In:** `tasks/stage-14-go-backend-import.md`
+**Gate-Out:** `gate-out/stage-14-go-backend-import.md`
+**Merge-Approval:** `merge-approval/stage-14-go-backend-import.md`
+
+---
+
+### stage-15-pnpm-workspace-wiring
+
+**Domain:** pnpm-workspace.yaml, root package.json, apps/mobile/package.json, packages/nitro-module-math/package.json
+**Depends On:** stage-12, stage-13
+**Status:** `PLANNING`
+
+**Acceptance Criteria:**
+- [ ] `pnpm install` resolves `apps/mobile` and `packages/nitro-module-math` as workspace members with no lockfile conflicts
+- [ ] Root `pnpm type-check` (turbo) still passes for every existing package
+- [ ] `apps/mobile` can run `expo start` without missing-module errors
+
+**Dispatch-In:** `tasks/stage-15-pnpm-workspace-wiring.md`
+**Gate-Out:** `gate-out/stage-15-pnpm-workspace-wiring.md`
+**Merge-Approval:** `merge-approval/stage-15-pnpm-workspace-wiring.md`
+
+---
+
+### stage-16-line-bot-nearby-spots
+
+**Domain:** apps/api/src/domains/line, apps/backend-go (aggregation endpoint)
+**Depends On:** stage-14
+**Status:** `PLANNING`
+
+**Acceptance Criteria:**
+- [ ] `apps/backend-go` exposes an aggregated "nearby popular running spots" query (bucketed, never per-user — see DECISIONS.md, SECURITY_RULES.md → Location & Presence Data)
+- [ ] `apps/api/src/domains/line` (`schema.ts`/`handler.ts`/`route.ts`) built following the existing `apps/api/src/domains/telegram` pattern, importing from `@gover-agent/chat-ops-core` (webhook signature verification + client already implemented there per stage-11)
+- [ ] LINE message "วิ่งไหนดี" (or similar intent) routed via the existing `command-router`/`groq-parse` helpers in chat-ops-core to a real answer — no hardcoded/fake spot data
+- [ ] `CLAUDE.md`'s "Already provided" table updated with a LINE bot row once this ships (per stage-11's note that this was left undone)
+
+**Blockers:** Cannot start until stage-14 lands and the backend-go aggregation query exists — building the bot against fake data would violate the no-half-finished-implementations rule and the Location & Presence Data security rule.
+
+**Dispatch-In:** `tasks/stage-16-line-bot-nearby-spots.md`
+**Gate-Out:** `gate-out/stage-16-line-bot-nearby-spots.md`
+**Merge-Approval:** `merge-approval/stage-16-line-bot-nearby-spots.md`
 
 <!-- Add one section per stage -->
 

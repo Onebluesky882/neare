@@ -56,17 +56,21 @@ The AI will guide you from there.
 
 ```
 apps/
-  web/          Next.js — public site (landing, onboarding, auth, forum, roadmap)
-  admin/        Next.js — admin dashboard (users, storage, emails, settings)
-  api/          Hono — Cloudflare Worker (all API domains)
+  web/            Next.js — public site (landing, onboarding, auth, forum, roadmap)
+  admin/          Next.js — admin dashboard (users, storage, emails, settings)
+  api/            Hono — Cloudflare Worker (all API domains)
+  mobile/         Expo/React Native — the neare mobile app (nearby activity, imported from the Snackig prototype)
+  backend-go/     Go + Fiber + Postgres — mobile app's own backend (realtime/geo/presence). Separate from apps/api by design, see agentic/DECISIONS.md
+  backend-go-auth/ better-auth (TS/Hono) service backing apps/backend-go
 
 packages/
-  auth/           Better Auth config + client
-  db/             Drizzle schema + D1 client + migrations
-  email/          Resend templates (welcome, reset, notification)
-  ui/             Shared React components
-  config/         Shared tsconfig + Biome config
-  chat-ops-core/  Chat-bot building blocks (Telegram, LINE, Meta webhooks + identity linking + command router + Groq NLP parsing) — no HTTP routes, import into any app/domain that needs a chat bot
+  auth/               Better Auth config + client (used by apps/web, apps/api, apps/admin)
+  db/                 Drizzle schema + D1 client + migrations
+  email/              Resend templates (welcome, reset, notification)
+  ui/                 Shared React components
+  config/             Shared tsconfig + Biome config
+  chat-ops-core/      Chat-bot building blocks (Telegram, LINE, Meta webhooks + identity linking + command router + Groq NLP parsing) — no HTTP routes, import into any app/domain that needs a chat bot
+  nitro-module-math/  Nitro native module — reference for custom native modules used by apps/mobile
 
 agentic/        AI governance system (Conductor + Worker workflow)
   QUESTIONS.md        Developer setup questionnaire

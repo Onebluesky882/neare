@@ -127,4 +127,46 @@ Use **Anthropic Managed Agents** (`/v1/agents`, `/v1/sessions`) with a `github_r
 
 ⸻
 
+## Decision: Import Snackig as the neare mobile product
+
+**Date:** 2026-07-09
+**Status:** ACCEPTED
+
+**Context:**
+Dev already has a working prototype ("Snackig") at `/Users/onebluesky882/local_files/myApp/Snackig`: an Expo mobile app, a Nitro native module example, and a separate Go backend (Fiber + Postgres) plus a small `better-auth` TS service. Dev wants this to become the core mobile product for `neare` — a privacy-first "nearby activity" app — rather than rebuilding from scratch.
+
+**Decision:**
+- Import `snackig/` → `apps/mobile` (Expo/React Native), converted to pnpm (drop `bun.lock`).
+- Import `nitro-module-math/` → `packages/nitro-module-math` (kept as a native-module reference/starting point).
+- Import `backend/go_project` + `backend/better-auth` → `apps/backend-go`. This backend stays **separate** from `apps/api` (Hono/Cloudflare/D1) — Dev explicitly chose to keep using the existing Go+Postgres+better-auth stack for the mobile app's realtime/geo features instead of building that logic into the Cloudflare Workers API. `apps/api`/`apps/web`/`apps/admin` are unaffected and keep using `packages/auth` Bearer tokens.
+- No secrets copied: `backend/go_project/.env`, the compiled `main` binary, and `tmp/` build artifacts are excluded from the import. A fresh `.env` must be created locally (see SECURITY_RULES.md).
+
+**Consequences:**
+- The repo now has two backends with two auth systems (Cloudflare/D1/packages-auth for web, Go/Postgres/better-auth for mobile). Any future work must not conflate the two or route web dashboard traffic through the Go backend without a new CONTRACTS.md entry + Conductor approval (see SECURITY_RULES.md — API Surface Protection).
+- pnpm is the single package manager across the whole monorepo (see Config in PROJECT.md / QUESTIONS.md Q7).
+- Deployment target for `apps/backend-go` is not Cloudflare Workers (Go doesn't run there) — a real deployment target (VM/container) is still open, tracked in PIPELINE.md.
+
+⸻
+
+## Decision: Location & presence data must be aggregated, never individually identifying
+
+**Date:** 2026-07-09
+**Status:** ACCEPTED
+
+**Context:**
+The core "neare" feature is showing that people/activity exist near a user (density, live nearby runners, heatmaps) without exposing who any specific person is. Dev and Conductor discussed this against GDPR/PDPA: location data can count as personal data even without a name attached, if it can still be linked back to an individual (e.g. a near-empty area, high-precision realtime pings, or persisted location history).
+
+**Decision:**
+- Any endpoint or UI surface showing "people near you" must return **aggregated counts / density**, never a list of individually resolvable users, unless the viewer has an explicit mutual-consent relationship with that specific person (e.g. an accepted "group run" invite — out of scope until designed).
+- Raw location pings are never persisted indefinitely; only derived/aggregate data (heatmap buckets, run summaries) may be retained. Retention window must be defined before any location-writing endpoint ships.
+- Areas below a minimum bucket size (Dev/Conductor to set a concrete threshold, e.g. "fewer than N people in a geohash cell") must not be displayed as an exact count — show a floor value or hide the cell instead, so no cell of 1–2 people can be de-anonymized by inference.
+- Location sharing requires explicit opt-in consent, must be revocable, and must not be silently upgraded (e.g. from "share while using app" to "always").
+- See SECURITY_RULES.md → Location & Presence Data for the enforceable rule text.
+
+**Consequences:**
+- Every future stage touching GPS/presence/heatmap data must be checked against this decision before merge-approval.
+- `apps/backend-go` geo endpoints must expose aggregation, not raw point queries, from day one — no "quick individual lookup" shortcut even for debugging.
+
+⸻
+
 <!-- Add one section per decision -->

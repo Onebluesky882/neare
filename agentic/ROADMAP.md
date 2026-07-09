@@ -1,7 +1,7 @@
 ---
-status: DRAFT
+status: ACTIVE
 owner: CONDUCTOR
-last_updated: 2026-06-25
+last_updated: 2026-07-09
 ---
 
 # ROADMAP.md
@@ -21,7 +21,7 @@ Intended for: Product Owners, Project Managers, Architects, Developers, Future C
 
 ## Project Vision
 
-[Describe the long-term vision of the project here.]
+neare helps people see that activity is happening near them — starting with running/movement: nearby runners, busy spots, live community energy — without ever exposing who a specific person is. It grew out of an earlier prototype ("Snackig") built around the idea of a "social movement platform," not just a running tracker: live nearby runners, community heatmaps, group runs, all wrapped in a fast, native-feeling mobile app.
 
 ---
 
@@ -29,9 +29,9 @@ Intended for: Product Owners, Project Managers, Architects, Developers, Future C
 
 What problem does this project solve?
 
-- Problem 1
-- Problem 2
-- Problem 3
+- It's hard to know where people are actually out running/active near you right now, or whether a spot is worth going to.
+- Existing "see people nearby" apps usually trade away privacy to do this — showing exact identities or precise live locations.
+- Getting quick answers ("where's good to run tonight?") currently means checking an app — there's no easy chat-based way to ask.
 
 ---
 
@@ -39,21 +39,20 @@ What problem does this project solve?
 
 ### Goal 1
 
-Description: [TBD]
+Description: Ship a mobile app where users can see nearby activity/density (not individual people) in a way that respects privacy by design.
 
 Success Criteria:
-- [ ] TBD
-- [ ] TBD
-- [ ] TBD
+- [ ] Nearby/heatmap view shows aggregated density only, never a resolvable list of individuals
+- [ ] Location sharing requires explicit, revocable consent
+- [ ] Mobile app (Expo) is imported, builds, and runs on the existing device targets
 
 ### Goal 2
 
-Description: [TBD]
+Description: Let people get nearby-activity answers through chat, not just the app.
 
 Success Criteria:
-- [ ] TBD
-- [ ] TBD
-- [ ] TBD
+- [ ] LINE bot answers "วิ่งไหนดี" (where's good to run) with real, aggregated nearby-spot data
+- [ ] Bot responses respect the same privacy rules as the app (no individual identities)
 
 ---
 
@@ -61,21 +60,19 @@ Success Criteria:
 
 ### Objective 1
 
-Description: [TBD]
+Description: Bring the existing Snackig prototype (mobile app, Nitro native module, Go backend) into the neare monorepo as the foundation, instead of rebuilding it.
 
 Success Indicators:
-- [ ] TBD
-- [ ] TBD
-- [ ] TBD
+- [ ] apps/mobile, packages/nitro-module-math, apps/backend-go present and building under the unified pnpm workspace
+- [ ] No secrets from the original prototype committed into neare
 
 ### Objective 2
 
-Description: [TBD]
+Description: Turn the already-built chat-ops-core toolkit into a live LINE bot backed by real nearby-activity data.
 
 Success Indicators:
-- [ ] TBD
-- [ ] TBD
-- [ ] TBD
+- [ ] apps/backend-go exposes an aggregated "nearby popular spots" query
+- [ ] LINE webhook route wired in apps/api using packages/chat-ops-core, mirroring the existing Telegram domain
 
 ---
 
@@ -103,6 +100,8 @@ Success Indicators:
 - Updated the public homepage's "what's included" section so it now honestly lists every service this starter kit offers — security, payments (card and crypto), database, file storage, an AI assistant, and chat bot support — described in plain terms, without naming the specific outside companies behind each one. The payment feature itself is still backend-only as noted above; this only updates how it's presented on the page.
 - Restyled the "tell us about your business" onboarding form so it visually matches the rest of the site instead of using old, mismatched colors.
 - Added a new shared toolkit for building chat bots (Telegram, LINE, and Facebook/Instagram messaging) into the project's reusable building blocks — it was already written but wasn't hooked up correctly, so it was fixed and documented. No new chat bot is turned on yet; this just makes it ready to build one faster whenever you want a LINE or Instagram/Facebook bot in addition to the existing Telegram and Discord ones.
+- Defined what "neare" actually is: an app that shows nearby activity/people density (starting with running) without exposing anyone's identity, plus a chat-based way to ask "where's good to run" via LINE. Wrote down the privacy rules this has to follow (aggregated counts only, no individual lookups, consent-based location sharing, limited retention) so every future feature gets checked against them.
+- Decided to bring in your existing "Snackig" prototype (mobile app + native performance module + its own Go backend) as the real starting point for the neare mobile app, instead of starting from zero. Importing it now.
 
 ---
 
@@ -112,9 +111,9 @@ Milestones may be added, removed, reordered, or refined by the Conductor.
 
 | ID | Name | Goal | Status |
 |----|------|------|--------|
-| M-001 | TBD | TBD | PLANNING |
-| M-002 | TBD | TBD | PLANNING |
-| M-003 | TBD | TBD | PLANNING |
+| M-001 | Import mobile app foundation | Bring Snackig's mobile app, native module, and Go backend into neare, running under one package manager | IN_PROGRESS |
+| M-002 | Privacy-first nearby/heatmap feature | Aggregated "people/activity near you" view, no individual identities exposed | PLANNING |
+| M-003 | LINE bot — "วิ่งไหนดี" | Chat-based nearby running spot lookup via LINE, backed by real aggregated data | PLANNING |
 
 **Status values:** PLANNING · APPROVED · IN_PROGRESS · COMPLETE · CANCELLED
 
@@ -128,17 +127,18 @@ Milestones may be added, removed, reordered, or refined by the Conductor.
 - To go live with the Discord bot and crypto payments, you'll need to provide your own account keys (Discord bot token, NOWPayments account key) — ask when you're ready and we'll walk through it.
 - The crypto payment connection can receive payments but doesn't yet automatically mark an order as "paid" in the system — that logic needs your specific pricing plan rules before it's finished.
 - Not urgent, but worth knowing: the card payment (Stripe) feature has no actual checkout page yet for customers to use — the backend works, but nobody's built the "click to pay" screen. Ask if you want that built.
-- The new chat bot toolkit is ready but not turned into a working bot yet — say the word if you want a LINE or Instagram/Facebook bot actually connected and live (Telegram and Discord already are).
-- Awaiting your direction on what to build next.
+- The new chat bot toolkit is ready but not turned into a working bot yet — the LINE bot specifically is now planned (see below), Instagram/Facebook still awaiting direction.
+- Bringing your existing mobile app prototype into this project now (mobile app, native performance module, its own backend) — no user-facing change yet, this is groundwork.
+- The LINE bot that answers "where's good to run" needs real nearby-activity data to exist first (from the mobile app's backend) — it isn't built yet on purpose, so it doesn't answer with fake/placeholder spots. It's next in line once the groundwork above lands.
 
 ---
 
 ## Success Metrics
 
 The project will be considered successful when:
-- [ ] TBD
-- [ ] TBD
-- [ ] TBD
+- [ ] A user can open the mobile app and see nearby running activity/density near them, with no individual identities exposed
+- [ ] A user can message the LINE bot and get a real, useful answer to "วิ่งไหนดี" (where's good to run)
+- [ ] No location/presence feature has ever shipped that returns individually-identifying data
 
 ---
 
@@ -146,9 +146,15 @@ The project will be considered successful when:
 
 ### Risk 1
 
-Description: [TBD]
+Description: Two separate backends (Cloudflare/D1 for web, Go/Postgres for mobile) increase operational surface — a deployment target for apps/backend-go still needs to be chosen (it can't run on Cloudflare Workers).
 
-Mitigation: [TBD]
+Mitigation: Tracked explicitly in PIPELINE.md as an open blocker; do not silently fold mobile traffic into apps/api as a workaround (see ARCHITECTURE.md constraints).
+
+### Risk 2
+
+Description: Privacy design mistakes (over-precise location, tiny density buckets, unbounded retention) could re-identify individuals even without names — a real legal/ethical risk given GDPR/PDPA treat linkable location data as personal data.
+
+Mitigation: DECISIONS.md and SECURITY_RULES.md both encode concrete rules (aggregation only, minimum bucket size, consent, retention limits); every geo/presence stage must be checked against them before merge-approval.
 
 ---
 
@@ -166,10 +172,15 @@ Mitigation: [TBD]
 ## Project Scope
 
 **In Scope:**
-- [TBD]
+- Mobile app (Expo) for nearby activity/density, imported from the Snackig prototype
+- Its own Go backend for realtime/geo/presence data
+- LINE bot for chat-based nearby-spot queries
+- Existing web dashboard/owner tooling (apps/web, apps/api, apps/admin) — unaffected, kept as-is
 
-**Out of Scope:**
-- [TBD]
+**Out of Scope (for now):**
+- Merging the Go backend into apps/api's Cloudflare/D1 stack
+- Showing individually-identifying location/presence data under any circumstance
+- Instagram/Facebook bot (toolkit ready, not scheduled)
 
 ---
 
