@@ -169,4 +169,27 @@ The core "neare" feature is showing that people/activity exist near a user (dens
 
 ⸻
 
+## Decision: Foreground-only location tracking, triggered by app open
+
+**Date:** 2026-07-09
+**Status:** ACCEPTED
+
+**Context:**
+neare's "nearby activity" feature needs real location data, and (see research discussed with Dev) there is no legitimate third-party API that already provides "how many people are gathered at location X right now" — Google Popular Times has no public API (third-party access is ToS-violating scraping), Strava's heatmap is historical/aggregate not live, and telecom/foot-traffic-broker data requires enterprise contracts. The only legitimate source is neare's own users sharing their own location, which means neare has the same cold-start problem as Waze/Zenly/Strava: the density map is only as good as current app usage in an area.
+
+Given that, Dev chose how neare captures location: **only while the app is open (foreground), not continuous always-on background tracking.**
+
+**Decision:**
+- Mobile app requests **"When In Use" location permission only** — never "Always"/background location.
+- Location is captured/sent while the app is in the foreground (e.g. on an interval or significant-change while the app is open), and stops the moment the app is backgrounded or closed.
+- No background location task, no geofencing-while-closed, no silent background wake-ups.
+
+**Consequences:**
+- Simpler App Store / Play Store review (background location requires extra justification and stricter review on both platforms — avoided entirely).
+- Better battery behavior than always-on tracking, at the cost of "staleness" — a user's last-known position is only as fresh as the last time they had the app open.
+- The "nearby density" view is inherently sparse early on (cold start) — this is expected, not a bug, and should be communicated in-app (e.g. "not many people nearby yet" rather than a broken-looking empty state).
+- Confirms all aggregation/privacy rules in DECISIONS.md → "Location & presence data must be aggregated, never individually identifying" still apply — foreground-only capture does not relax those rules.
+
+⸻
+
 <!-- Add one section per decision -->

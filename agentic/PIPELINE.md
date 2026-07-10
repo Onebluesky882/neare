@@ -26,7 +26,12 @@ Conductor Branch: main
 | stage-13-nitro-module-import | packages/nitro-module-math | none | IN_PROGRESS |
 | stage-14-go-backend-import | apps/backend-go | none | IN_PROGRESS |
 | stage-15-pnpm-workspace-wiring | pnpm-workspace.yaml, root package.json, apps/mobile/package.json, packages/nitro-module-math/package.json | stage-12, stage-13 | PLANNING |
-| stage-16-line-bot-nearby-spots | apps/api/src/domains/line, apps/backend-go (aggregation endpoint) | stage-14 | PLANNING |
+| stage-16-line-bot-nearby-spots | apps/api/src/domains/line, apps/backend-go (aggregation endpoint) | stage-14, stage-19 | PLANNING |
+| stage-17-geo-data-model | apps/backend-go (DB schema, migrations) | stage-14 | PLANNING |
+| stage-18-mobile-consent-and-tracking | apps/mobile (location permission, foreground tracking) | stage-12 | PLANNING |
+| stage-19-nearby-aggregation-api | apps/backend-go (GET /nearby endpoint) | stage-17 | PLANNING |
+| stage-20-mobile-nearby-map-ui | apps/mobile (map view, radius slider, density layer) | stage-18, stage-19 | PLANNING |
+| stage-21-poi-seed-data | apps/backend-go (POI table + OpenStreetMap import job) | stage-17 | PLANNING |
 
 ---
 
@@ -364,11 +369,110 @@ Cleanup performed: both worktrees and their branches were removed (`git worktree
 - [ ] LINE message "วิ่งไหนดี" (or similar intent) routed via the existing `command-router`/`groq-parse` helpers in chat-ops-core to a real answer — no hardcoded/fake spot data
 - [ ] `CLAUDE.md`'s "Already provided" table updated with a LINE bot row once this ships (per stage-11's note that this was left undone)
 
-**Blockers:** Cannot start until stage-14 lands and the backend-go aggregation query exists — building the bot against fake data would violate the no-half-finished-implementations rule and the Location & Presence Data security rule.
+**Blockers:** Cannot start until stage-14 lands and the backend-go aggregation query exists — building the bot against fake data would violate the no-half-finished-implementations rule and the Location & Presence Data security rule. Now also depends on stage-19 (the aggregation endpoint itself), not just stage-14.
 
 **Dispatch-In:** `tasks/stage-16-line-bot-nearby-spots.md`
 **Gate-Out:** `gate-out/stage-16-line-bot-nearby-spots.md`
 **Merge-Approval:** `merge-approval/stage-16-line-bot-nearby-spots.md`
+
+---
+
+### stage-17-geo-data-model
+
+**Domain:** apps/backend-go (DB schema, migrations)
+**Depends On:** stage-14
+**Status:** `PLANNING`
+
+**Context:** Dev confirmed the tracking model (see DECISIONS.md — "Foreground-only location tracking, triggered by app open"): the mobile app captures location only while open, no background tracking. This stage designs the storage this feeds into.
+
+**Acceptance Criteria:**
+- [ ] `location_ping` table (or equivalent): user_id, lat, lng, recorded_at, activity_type — short retention only, a scheduled purge job/query removes pings older than the agreed retention window (window TBD with Dev before this ships — see DECISIONS.md, no default assumed)
+- [ ] `poi` table: id, name, category (e.g. park, track, gym), lat, lng, source (e.g. `osm`) — seeded in stage-21
+- [ ] Aggregation view/query: buckets raw pings by nearest POI (within a snap radius) or by geohash cell when no POI is near, groups by `activity_type`, counts users — never returns raw per-user rows to any API consumer
+- [ ] Minimum bucket size enforced at the query layer (buckets below threshold omitted/floored) per SECURITY_RULES.md — exact threshold value confirmed with Dev before merge
+- [ ] `users.location_consent` (or equivalent) flag — pings are only ever written for users who opted in, and it must be revocable (revoking stops new pings and is honored immediately, not just on next app restart)
+
+**Blockers:** Needs Dev to confirm the exact retention window and minimum bucket-size threshold before merge-approval (placeholder decisions must not silently ship).
+
+**Dispatch-In:** `tasks/stage-17-geo-data-model.md`
+**Gate-Out:** `gate-out/stage-17-geo-data-model.md`
+**Merge-Approval:** `merge-approval/stage-17-geo-data-model.md`
+
+---
+
+### stage-18-mobile-consent-and-tracking
+
+**Domain:** apps/mobile (location permission, foreground tracking)
+**Depends On:** stage-12
+**Status:** `PLANNING`
+
+**Acceptance Criteria:**
+- [ ] `app.json` updated with "When In Use" location usage description (iOS `NSLocationWhenInUseUsageDescription`, Android `ACCESS_FINE_LOCATION`/`ACCESS_COARSE_LOCATION`) — explicitly **not** requesting "Always"/background permission, per DECISIONS.md
+- [ ] Consent screen: explains what's shared (aggregated presence only, never identity — matches SECURITY_RULES.md language), opt-in required, toggle to revoke later in settings
+- [ ] Foreground location capture while app is open (expo-location `watchPositionAsync` or interval-based, throttled — not constant polling, mind battery per Snackig's own `idea/gps.md` notes), sends pings to the stage-17 endpoint only while the user has consented
+- [ ] Tracking visibly stops the moment the app is backgrounded (no lingering background task)
+- [ ] Activity-type selection surfaced to the user (e.g. "running") so pings can be tagged — feeds the "what are people doing" part of the feature
+
+**Dispatch-In:** `tasks/stage-18-mobile-consent-and-tracking.md`
+**Gate-Out:** `gate-out/stage-18-mobile-consent-and-tracking.md`
+**Merge-Approval:** `merge-approval/stage-18-mobile-consent-and-tracking.md`
+
+---
+
+### stage-19-nearby-aggregation-api
+
+**Domain:** apps/backend-go (GET /nearby endpoint)
+**Depends On:** stage-17
+**Status:** `PLANNING`
+
+**Acceptance Criteria:**
+- [ ] `GET /nearby?lat&lng&radiusKm` — `radiusKm` clamped to the agreed 1–30 range, rejects/clamps out-of-range input rather than erroring unhelpfully
+- [ ] Response: aggregated buckets only (`{ poiId | geohash, name?, activityType, count }[]`) — matches the CONTRACTS.md module contract already drafted; never a per-user list
+- [ ] Buckets below the minimum size (stage-17) are omitted or floored, not returned as an exact small number
+- [ ] Documented in CONTRACTS.md once implemented (currently a placeholder contract — update it, don't leave it stale)
+
+**Dispatch-In:** `tasks/stage-19-nearby-aggregation-api.md`
+**Gate-Out:** `gate-out/stage-19-nearby-aggregation-api.md`
+**Merge-Approval:** `merge-approval/stage-19-nearby-aggregation-api.md`
+
+---
+
+### stage-20-mobile-nearby-map-ui
+
+**Domain:** apps/mobile (map view, radius slider, density layer)
+**Depends On:** stage-18, stage-19
+**Status:** `PLANNING`
+
+**Acceptance Criteria:**
+- [ ] Map screen (react-native-maps, already a dependency) with a radius slider/control, range 1–30 km, calling stage-19's endpoint
+- [ ] Renders density (count per POI/area, e.g. via marker size or a heat layer) — explicitly **not** one pin per individual user/avatar, consistent with SECURITY_RULES.md
+- [ ] Sparse-data ("cold start") empty state handled gracefully — see DECISIONS.md, this is expected early on, not an error state
+- [ ] Tapping a busy area shows the aggregated info only (e.g. "~12 people running here") — no path to resolve individuals
+
+**Dispatch-In:** `tasks/stage-20-mobile-nearby-map-ui.md`
+**Gate-Out:** `gate-out/stage-20-mobile-nearby-map-ui.md`
+**Merge-Approval:** `merge-approval/stage-20-mobile-nearby-map-ui.md`
+
+---
+
+### stage-21-poi-seed-data
+
+**Domain:** apps/backend-go (POI table + OpenStreetMap import job)
+**Depends On:** stage-17
+**Status:** `PLANNING`
+
+**Context:** So the app can say "สวนสาธารณะ X" instead of raw coordinates, `poi` needs to be seeded with real place names. Discussed with Dev: OpenStreetMap (via the Overpass API) was proposed as the default source — free, no API key, good park/track/sports-facility coverage — pending Dev's final confirmation before this stage starts (not yet locked in DECISIONS.md).
+
+**Acceptance Criteria:**
+- [ ] POI source confirmed with Dev (OpenStreetMap Overpass API by default, unless Dev picks Google Places or a manual list instead)
+- [ ] One-time/periodic import job populates `poi` (parks, running tracks, sports facilities) for the launch region(s)
+- [ ] Attribution requirement satisfied if OSM is used (ODbL license requires crediting OpenStreetMap contributors somewhere in the app)
+
+**Blockers:** Waiting on Dev's final confirmation of the POI data source.
+
+**Dispatch-In:** `tasks/stage-21-poi-seed-data.md`
+**Gate-Out:** `gate-out/stage-21-poi-seed-data.md`
+**Merge-Approval:** `merge-approval/stage-21-poi-seed-data.md`
 
 <!-- Add one section per stage -->
 

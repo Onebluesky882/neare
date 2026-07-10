@@ -1,4 +1,5 @@
 import { FriendStories, MenuPage, UserProfile } from "@/components/homepage";
+import NearbyPulse from "@/components/homepage/NearbyPulse";
 import SocialFeed from "@/components/homepage/SocialFeed";
 import TrendingSports from "@/components/homepage/TrendingSports";
 import { ThemedView } from "@/components/themed-view";
@@ -45,9 +46,9 @@ const Index = () => {
           <TrendingSports />
 
           <SocialFeed />
+          {/* --- Section 4: Nearby Pulse (aggregate, privacy-first) --- */}
+          <NearbyPulse />
           {/* --- will remove --- */}
-          {/* --- Section 4: Local Pulse (Community Activity) --- */}
-          {/* <LocalPules /> */}
           {/* --- Section 5: Local Feed (Posts & Updates) --- */}
           {/* <LocalFeed /> */}
         </ThemedView>

@@ -111,9 +111,9 @@ Milestones may be added, removed, reordered, or refined by the Conductor.
 
 | ID | Name | Goal | Status |
 |----|------|------|--------|
-| M-001 | Import mobile app foundation | Bring Snackig's mobile app, native module, and Go backend into neare, running under one package manager | IN_PROGRESS |
-| M-002 | Privacy-first nearby/heatmap feature | Aggregated "people/activity near you" view, no individual identities exposed | PLANNING |
-| M-003 | LINE bot — "วิ่งไหนดี" | Chat-based nearby running spot lookup via LINE, backed by real aggregated data | PLANNING |
+| M-001 | Import mobile app foundation | Bring Snackig's mobile app, native module, and Go backend into neare, running under one package manager | COMPLETE |
+| M-002 | Privacy-first nearby/heatmap feature | Aggregated "people/activity near you" view (1–30km radius, foreground-only tracking), no individual identities exposed | PLANNING (see PIPELINE.md stage-17 through stage-21) |
+| M-003 | LINE bot — "วิ่งไหนดี" | Chat-based nearby running spot lookup via LINE, backed by real aggregated data | PLANNING (blocked on M-002) |
 
 **Status values:** PLANNING · APPROVED · IN_PROGRESS · COMPLETE · CANCELLED
 
@@ -130,6 +130,9 @@ Milestones may be added, removed, reordered, or refined by the Conductor.
 - The new chat bot toolkit is ready but not turned into a working bot yet — the LINE bot specifically is now planned (see below), Instagram/Facebook still awaiting direction.
 - Bringing your existing mobile app prototype into this project now (mobile app, native performance module, its own backend) — no user-facing change yet, this is groundwork.
 - The LINE bot that answers "where's good to run" needs real nearby-activity data to exist first (from the mobile app's backend) — it isn't built yet on purpose, so it doesn't answer with fake/placeholder spots. It's next in line once the groundwork above lands.
+- Decided how the app will know where people are: only while someone has the app open (not tracking in the background all the time) — simpler, better for battery, and avoids the strict extra app-store review that "always track my location" apps go through. This does mean the map will look empty in areas with few users at first — that's expected for any app like this in its early days (same as Waze or Strava when they were new), not a bug.
+- Confirmed there's no shortcut here — no outside company sells "who's gathered where, right now" data that's legal and reliable to use. The location data has to come from neare's own users, which is exactly what the plan above builds.
+- Laid out the next 5 concrete building blocks: (1) database for location/place data, (2) the "share my location" screen + on/off switch in the app, (3) the API that turns raw locations into "X people running near here" without ever naming anyone, (4) the map screen with a 1–30km radius control, (5) importing real park/running-spot names so results say "Lumpini Park" instead of raw coordinates.
 
 ---
 
